@@ -1,4 +1,6 @@
 {
+  "name": "invoice-generator",
+  "version": "0.1.0",
   "private": true,
   "productName": "ElectronNext",
   "main": "main/index.js",
