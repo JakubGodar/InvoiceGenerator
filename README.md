@@ -1,6 +1,6 @@
 # ⚛ Electron - React - TailwindCSS INVOICE GENERATOR
 
-# 🤓 Insatllation
+# 🤓 Instalation
 
 -   Clone repo - https://github.com/JakubGodar/InvoiceGenerator.git
 -   Run `npm install` or `yarn`
