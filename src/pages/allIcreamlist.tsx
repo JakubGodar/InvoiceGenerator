@@ -1,10 +1,9 @@
 "use client"
-
 import { FC, useState } from "react";
 import { Plus, Trash2, Pencil } from "lucide-react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { Input } from "src/@/components/ui/input"
 
 type OrderItem = {
   count: number 

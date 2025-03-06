@@ -1,6 +1,5 @@
 "use client"
-import type React from "react"
-import { useState } from "react"
+import { FC, useState } from "react";
 
 export const OutputEntry: React.FC = () => {
     const [inputValue, setInputValue] = useState(""); // Hodnota z inputu

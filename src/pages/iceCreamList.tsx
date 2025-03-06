@@ -5,7 +5,7 @@ type OrderItem = {
     code: string
     name: string
     category: string
-  }
+}
 
 export const IceCreamList: React.FC = () => {
     const [inputValue, setInputValue] = useState(""); // Hodnota z inputu

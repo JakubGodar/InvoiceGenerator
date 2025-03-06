@@ -6,8 +6,6 @@ import { OutputPanel } from "./outputPanel";
 import { InputPanel } from "./allinputs";
 import { NavBar } from "./navBar";
 
-
-
 export const IndexPage: FC = () => {
   {
   /*
