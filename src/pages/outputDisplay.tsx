@@ -1,18 +1,22 @@
-import { FC, useState } from "react";
+import React from "react";
+import { IceCream } from "./outputPanel"; // Importuje typ IceCream
 
+type Props = {
+  selectedItem: IceCream | null;
+  error: string | null;
+};
 
-export const OutPutDisplay: FC = () => {
-    const [inputValue, setInputValue] = useState(""); // Hodnota z inputu
-    const [items, setItems] = useState<string[]>([]); // Zoznam predmetov
-    
-  
-
-    return (
-        <div className="mt-4 text-lg p-2 rounded-md text-center">
-        {items.length > 0 ? items[items.length - 1] : "Zatiaľ nič pridané"}
-
-        </div>
-
-   
+export const OutPutDisplay: React.FC<Props> = ({ selectedItem, error }) => {
+  return (
+    <div className="p-4 bg-gray-100 rounded-lg min-h-[80px] text-black">
+      {error && <p className="text-red-500">{error}</p>}
+      {selectedItem ? (
+        <p className="text-lg font-bold">
+          {selectedItem.amount}× {selectedItem.name}
+        </p>
+      ) : (
+        <p className="text-gray-500">Žiadna zmrzlina nebola vybraná.</p>
+      )}
+    </div>
   );
 };

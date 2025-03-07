@@ -1,32 +1,84 @@
 "use client"
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
 import { OutputEntry } from "./outputEntry";
 import { OutPutDisplay } from "./outputDisplay";
 import { OutPutButtons } from "./outButtons";
 import { OutPutList } from "./outputList";
+import iceCreamsData from "src/data/IceCream.json";
+
+export type IceCream = {
+  id: number;
+  name: string;
+  type: string;
+  amount: number;
+};
+
 
 export const OutputPanel: React.FC = () => {
-	const [inputValue, setInputValue] = useState(""); // Hodnota z inputu
-  const [items, setItems] = useState<string[]>([]); // Zoznam predmetov
+  // Zoznam všetkých zmrzlín
+  const [allIceCreams, setAllIceCreams] = useState<IceCream[]>([]);
+  // Hodnota z inputu
+  const [inputValue, setInputValue] = useState("");
+  // Zoznam zmrzlín v objednávke
+  const [orderItems, setOrderItems] = useState<IceCream[]>([]);
+  // Chybová správa
+  const [error, setError] = useState<string | null>(null);
 
-    const handleRemoveItem = () => {
-		setItems((prev) => prev.slice(0, -1)); // Odstráni posledný predmet zo zoznamu
-	  };
+  // Načítanie zmrzlín pri mountnutí komponentu
+  useEffect(() => {
+    const iceCreams = iceCreamsData as IceCream[];
+    setAllIceCreams(iceCreams);
+  }, []);
 
-    const handleAddItem = () => {
-		if (inputValue.trim() !== "") {
-		  setItems([...items, inputValue.trim()]);
-		  setInputValue("");
-		}
-	  };
+  // Pridanie zmrzliny do objednávky
+  const handleAddItem = () => {
+    if (inputValue.trim() === "") return;
 
-return (
+    // Parsovanie vstupu vo formáte "počet*kód"
+    const match = inputValue.trim().match(/^(\d+)\*(\d+)$/);
+    if (!match) {
+      setError("Nesprávny formát. Použite: počet*kód (napr. 5*1)");
+      return;
+    }
 
-  <div className="flex flex-col w-50% bg-card p-4 rounded-lg shadow-lg ml-2 mr-2"> 
-    <OutputEntry />
-    <OutPutDisplay />
-    <OutPutButtons />
-    <OutPutList />      
-  </div>
-);
+    const count = Number.parseInt(match[1], 10);
+    const id = Number.parseInt(match[2], 10);
+
+    // Kontrola, či kód existuje
+    const iceCream = allIceCreams.find((ice) => ice.id === id);
+    if (!iceCream) {
+      setError(`Kód zmrzliny "${id}" neexistuje`);
+      return;
+    }
+
+    // Pridanie položky do objednávky
+    setOrderItems((prev) => [
+      ...prev,
+      { ...iceCream, amount: count },
+    ]);
+
+    setInputValue("");
+    setError(null);
+  };
+
+  // Odstránenie poslednej položky z objednávky
+  const handleRemoveItem = () => {
+    setOrderItems((prev) => prev.slice(0, -1));
+  };
+
+  return (
+    <div className="flex flex-col w-1/3 bg-white text-black p-4 rounded-lg shadow-lg">
+      <OutputEntry inputValue={inputValue} setInputValue={setInputValue} />
+      
+      <OutPutDisplay selectedItem={orderItems.length > 0 ? orderItems[orderItems.length - 1] : null} 
+error={error} 
+/>
+
+      <div className="flex gap-2 justify-center mt-4">
+        
+      <OutPutButtons onAdd={handleAddItem} onRemove={handleRemoveItem} />
+      </div>
+      <OutPutList items={orderItems} />
+    </div>
+  );
 };

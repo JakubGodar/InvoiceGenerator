@@ -39,7 +39,7 @@ export const InputPanel: React.FC = () => {
 
 return (
 
-<div className="flex flex-col w-1/3 bg-card p-4 rounded-lg shadow-lg">
+<div className="flex flex-col w-1/3 bg-white text-black p-4 rounded-lg shadow-lg">
           <h2 className="text-lg font-semibold mb-2">Zadajte údaje</h2>
           <div className="flex flex-col gap-4">
 			<div>

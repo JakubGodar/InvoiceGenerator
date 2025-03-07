@@ -1,48 +1,25 @@
-import { FC, useState } from "react";
+import React from "react";
 
-
-export const OutPutButtons: FC = () => {
-    const [inputValue, setInputValue] = useState(""); // Hodnota z inputu
-    const [items, setItems] = useState<string[]>([]); // Zoznam predmetov
-  
-      const handleRemoveItem = () => {
-          setItems((prev) => prev.slice(0, -1)); // Odstráni posledný predmet zo zoznamu
-        };
-  
-      const handleAddItem = () => {
-          if (inputValue.trim() !== "") {
-            setItems([...items, inputValue.trim()]);
-            setInputValue("");
-          }
-        };
-  
-
-    return (
-        <div className="flex justify-around mt-4">
-          <button
-            onClick={handleAddItem}
-            className="flex justify-around mt-4 bg-orange-400 text-white py-2 px-10 rounded-md hover:bg-orange-500"
-          >
-            Pridať
-          </button>
-		  <button className="flex justify-around mt-4 bg-orange-400 text-white py-2 px-10 rounded-md hover:bg-orange-500">
-            Náhľad
-          </button>
-          <button
-            onClick={handleRemoveItem}
-            className="flex justify-around mt-4 bg-orange-400 text-white py-2 px-10 rounded-md hover:bg-orange-500"
-          >
-            Zmazať
-          </button>
-          <button className="flex justify-around mt-4 bg-orange-400 text-white py-2 px-10 rounded-md hover:bg-orange-500">
-            Tlačiť
-          </button>
-		  
-        </div>
-
-   
-  );
-  
+type Props = {
+  onAdd: () => void;
+  onRemove: () => void;
 };
 
-export{};
+export const OutPutButtons: React.FC<Props> = ({ onAdd, onRemove }) => {
+  return (
+    <div className="flex gap-2">
+      <button onClick={onAdd} className="bg-orange-500 text-white p-2 rounded">
+        Pridať
+      </button>
+      <button onClick={onRemove} className="bg-orange-500 text-white p-2 rounded">
+        Odstrániť
+      </button>
+      <button onClick={onAdd} className="bg-orange-500 text-white p-2 rounded">
+        Nahlad
+      </button>
+      <button onClick={onRemove} className="bg-orange-500 text-white p-2 rounded">
+        Tlacit
+      </button>
+    </div>
+  );
+};

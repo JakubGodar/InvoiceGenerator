@@ -1,33 +1,57 @@
-import { FC, useState } from "react";
+import { FC, useState, useEffect } from "react";
+import iceCreamsData from "src/data/IceCream.json";
 
-type OrderItem = {
-    count: number 
-    code: string
-    name: string
-    category: string
-}
+type IceCream = {
+  id: number;
+  name: string;
+  type: string;
+  amount: number;
+};
 
-export const IceCreamList: React.FC = () => {
-    const [inputValue, setInputValue] = useState(""); // Hodnota z inputu
-    const [items, setItems] = useState<string[]>([]); // Zoznam predmetov
+type Props = {
+  onSelectIceCream?: (iceCream: IceCream) => void; // Volitelná funkcia na výber zmrzliny
+};
 
-    const handleAddItem = () => {
-        if (inputValue.trim() !== "") {
-            setItems([...items, inputValue.trim()]);
-            setInputValue("");
-        }
-    };
+export const IceCreamList: React.FC<Props> = ({ onSelectIceCream }) => {
+  const [milkIceCreams, setMilkIceCreams] = useState<IceCream[]>([]);
+  const [fruitIceCreams, setFruitIceCreams] = useState<IceCream[]>([]);
+  const [specialIceCreams, setSpecialIceCreams] = useState<IceCream[]>([]);
+  const [sorbets, setSorbets] = useState<IceCream[]>([]);
 
-    return (
-        <div className="flex flex-col items-center">
-            <h2 className="text-lg font-semibold mb-4">Zadaj zmrzlinu v tvare (počet*kód)</h2>
-            <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                className="border-2 border-gray-300 rounded-md p-2 text-lg w-full text-center"
-                placeholder="Napíš text v tvare 5*1"
-            />
-        </div>
-    );
+  // Nacítanie zmrzlín pri prvom zobrazení
+  useEffect(() => {
+    const iceCreams = iceCreamsData as IceCream[];
+
+    setMilkIceCreams(iceCreams.filter((ice) => ice.type === "M"));
+    setFruitIceCreams(iceCreams.filter((ice) => ice.type === "F"));
+    setSpecialIceCreams(iceCreams.filter((ice) => ice.type === "I"));
+    setSorbets(iceCreams.filter((ice) => ice.type === "S"));
+  }, []);
+
+  // UI renderovanie jednej kategórie
+  const renderIceCreamCategory = (title: string, items: IceCream[]) => (
+    <div className="border border-red-500 rounded-lg flex flex-col h-[250px]">
+      <h3 className="text-xs font-semibold p-1 bg-white">{title}</h3>
+      <div className="bg-orange-300 flex-1 overflow-y-auto p-1">
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className="text-black text-xs py-0.5 cursor-pointer hover:bg-gray-200 p-1 rounded"
+            onClick={() => onSelectIceCream && onSelectIceCream(item)}
+          >
+            {item.id} - {item.name}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {renderIceCreamCategory("Mliecne zmrzliny", milkIceCreams)}
+      {renderIceCreamCategory("Ovocné zmrzliny", fruitIceCreams)}
+      {renderIceCreamCategory("Špeciálne zmrzliny", specialIceCreams)}
+      {renderIceCreamCategory("Sorbety", sorbets)}
+    </div>
+  );
 };

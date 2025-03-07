@@ -1,7 +1,7 @@
 import { FC, useState } from "react";
 import { Settings } from 'lucide-react';
 import { Plus, Minus } from "lucide-react";
-import { IceCreamPanel } from "./allIcreamlist";
+import { AllIceCreamList } from "./allIcreamlist";
 import { OutputPanel } from "./outputPanel";
 import { InputPanel } from "./allinputs";
 import { NavBar } from "./navBar";
@@ -32,21 +32,16 @@ export const IndexPage: FC = () => {
   
 
   return (
-    <div className="flex flex-col h-screen bg-primary text-foreground">
-      {/* Header */}
-        <NavBar />
-      {/*Left section */}
-
-	    <div className="flex h-screen bg-primary text-foreground">
-        <IceCreamPanel />
-
-      {/* Middle section */}
-	      <OutputPanel />
-      {/* Right section */}
-        <InputPanel />
-      </div>
-    </div>
-
+   
+    <div className="flex flex-row w-full h-screen bg-[#10162F] text-white p-4 gap-4">   
+        
+    <AllIceCreamList />
+    
+    <OutputPanel/>
+  
+    <InputPanel/>
+    
+  </div>    
    
   );
 };
