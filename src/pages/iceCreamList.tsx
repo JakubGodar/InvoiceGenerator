@@ -30,13 +30,13 @@ export const IceCreamList: React.FC<Props> = ({ onSelectIceCream }) => {
 
   // UI renderovanie jednej kategórie
   const renderIceCreamCategory = (title: string, items: IceCream[]) => (
-    <div className="border border-red-500 rounded-lg flex flex-col h-[250px]">
-      <h3 className="text-xs font-semibold p-1 bg-white">{title}</h3>
+    <div className="border border-red-500 rounded-lg flex flex-col h-[350px] w-[230px]">
+      <h3 className="text-xs  p-1 bg-white text-black font-bold">{title}</h3>
       <div className="bg-orange-300 flex-1 overflow-y-auto p-1">
         {items.map((item) => (
           <div
             key={item.id}
-            className="text-black text-xs py-0.5 cursor-pointer hover:bg-gray-200 p-1 rounded"
+            className="text-black text-xs py-0.5 cursor-pointer hover:bg-gray-200 p-1 rounded font-bold"
             onClick={() => onSelectIceCream && onSelectIceCream(item)}
           >
             {item.id} - {item.name}
@@ -55,3 +55,4 @@ export const IceCreamList: React.FC<Props> = ({ onSelectIceCream }) => {
     </div>
   );
 };
+

@@ -21,6 +21,7 @@ export const AllIceCreamList: React.FC = () => {
 
     return (
         <div className="flex flex-col w-1/3 bg-card p-4 rounded-lg shadow-lg">
+    
         <IceCreamList />
         </div>
     );
