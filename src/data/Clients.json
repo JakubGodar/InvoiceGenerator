@@ -96,19 +96,5 @@
     "phonenumber": "0918 448 096",
     "ico": "51 7398 01",
     "dic": "2120773952"
-  },
-  {
-    "id": 8,
-    "nick": "Prazdne",
-    "shopName": "-1",
-    "name": "-1",
-    "lastname": "-1",
-    "city": "-1",
-    "street": "-1",
-    "psc": "-1",
-    "state": "-1",
-    "phonenumber": "-1",
-    "ico": "-1",
-    "dic": "-1"
   }
 ]

@@ -1,3 +1,5 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
-contextBridge.exposeInMainWorld("electronAPI", {});
+contextBridge.exposeInMainWorld("electron", {
+	invoke: (channel, ...args) => ipcRenderer.invoke(channel, ...args),
+});

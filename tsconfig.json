@@ -16,8 +16,9 @@
 		"noEmit": true,
 		"jsx": "react-jsx",
 		"baseUrl": "./",
+		"types": ["./src/global"],
 		"paths": {
-			"@/*": ["src/*"]
+			"@/*": ["./src/*"]
 		}
 	},
 	"include": ["src", "renderer.d.ts"]

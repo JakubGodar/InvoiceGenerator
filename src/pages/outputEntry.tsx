@@ -1,31 +1,37 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
 type Props = {
-  inputValue: string
-  setInputValue: (value: string) => void
-  onEnterPress?: () => void // Add this prop for Enter key handling
-}
+	inputValue: string;
+	setInputValue: (value: string) => void;
+	onEnterPress?: () => void;
+};
 
 export const OutputEntry: React.FC<Props> = ({ inputValue, setInputValue, onEnterPress }) => {
-  // Handle key press events
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && onEnterPress) {
-      e.preventDefault()
-      onEnterPress()
-    }
-  }
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === "Enter" && onEnterPress) {
+			e.preventDefault();
+			onEnterPress();
+		}
+	};
 
-  return (
-    <input
-      type="text"
-      placeholder="Zadajte počet*kód (napr. 5*1)"
-      value={inputValue}
-      onChange={(e) => setInputValue(e.target.value)}
-      onKeyDown={handleKeyDown}
-      className="border p-2 w-full items-center"
-    />
-  )
-}
+	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		const newValue = e.target.value;
+		const regex = /^(\d+)?(\*\d{0,2})?$/;
+		if (regex.test(newValue)) {
+			setInputValue(newValue);
+		}
+	};
 
+	return (
+		<input
+			type="text"
+			placeholder="Zadajte počet*kód (napr. 5*12)"
+			value={inputValue}
+			onChange={handleChange}
+			onKeyDown={handleKeyDown}
+			className="border p-2 w-full items-center rounded-md bg-white text-black focus:outline-none focus:ring-2 focus:ring-orange-300"
+		/>
+	);
+};
