@@ -5,27 +5,33 @@ import { NavBar } from "./navBar";
 import AllIceCreamList from "./iceCreamList";
 
 export const IndexPage: FC = () => {
-	const [selectedSender, setSelectedSender] = useState(""); // 🔥 Sem to doplň
-	const [selectedCar, setSelectedCar] = useState("");
-	const [selectedCompany, setSelectedCompany] = useState("");
+	const [selectedSender, setSelectedSender] = useState<string>("");
+	const [selectedCar, setSelectedCar] = useState<string>("");
+	const [selectedCompany, setSelectedCompany] = useState<string>("");
 
 	return (
-		<div className="flex flex-row w-full h-screen bg-[#10162F] text-white p-4 gap-4">
-			<AllIceCreamList />
-			<OutputPanel
-				selectedSender={selectedSender}
-				setSelectedSender={setSelectedSender}
-				selectedCompany={selectedCompany}
-				selectedCar={selectedCar}
-			/>
-			<InputPanel
-				selectedSender={selectedSender}
-				setSelectedSender={setSelectedSender}
-				selectedCar={selectedCar}
-				setSelectedCar={setSelectedCar}
-				selectedCompany={selectedCompany}
-				setSelectedCompany={setSelectedCompany}
-			/>
+		<div className="flex flex-col w-full h-screen bg-[#10162F] text-white">
+			{/* Header */}
+			<NavBar />
+
+			{/* Main Content */}
+			<div className="flex flex-col md:flex-row flex-1 p-4 gap-4 overflow-auto">
+				<AllIceCreamList />
+				<OutputPanel
+					selectedSender={selectedSender}
+					setSelectedSender={setSelectedSender}
+					selectedCompany={selectedCompany}
+					selectedCar={selectedCar}
+				/>
+				<InputPanel
+					selectedSender={selectedSender}
+					setSelectedSender={setSelectedSender}
+					selectedCar={selectedCar}
+					setSelectedCar={setSelectedCar}
+					selectedCompany={selectedCompany}
+					setSelectedCompany={setSelectedCompany}
+				/>
+			</div>
 		</div>
 	);
 };

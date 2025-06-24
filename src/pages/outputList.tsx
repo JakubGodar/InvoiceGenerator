@@ -13,7 +13,7 @@ type Props = {
 };
 
 export const OutPutList: React.FC<Props> = ({ items, onIncreaseAmount, onDecreaseAmount, onRemoveItem }) => {
-	// Function to export the list to an Excel file
+
 
 	if (items.length === 0) {
 		return <div className="bg-gray-100 rounded-lg text-gray-500 text-center min-h-[600px] p-4">Žiadne položky v objednávke</div>;
@@ -23,7 +23,7 @@ export const OutPutList: React.FC<Props> = ({ items, onIncreaseAmount, onDecreas
 		<div className="bg-gray-100 rounded-lg p-4">
 			<h3 className="font-bold mb-2">Objednávka:</h3>
 
-			{/* Scrollable container for the list */}
+
 			<div className="max-h-[430px] overflow-y-auto pr-10">
 				<ul className="divide-y divide-gray-200">
 					{items.map((item, index) => (

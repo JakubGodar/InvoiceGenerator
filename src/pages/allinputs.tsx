@@ -3,8 +3,8 @@ import { Plus, Minus } from "lucide-react";
 import type React from "react";
 import { Input } from "../components/ui/input";
 import senderReceiverData from "../data/Clients.json";
-import CarsData from "../data/Cars.json"; // Import the CarsData
-import personData from "../data/PersonalData.json"; // Import the PersonData
+import CarsData from "../data/Cars.json";
+import personData from "../data/PersonalData.json";
 
 type Props = {
 	selectedSender: string;
@@ -23,21 +23,17 @@ export const InputPanel: React.FC<Props> = ({
 	selectedCar,
 	setSelectedCar,
 }) => {
-	//const [selectedCompany, setSelectedCompany] = useState(""); // Selected company
-	//const [selectedCar, setSelectedCar] = useState(""); // Selected car
-
 	const [isCompanyDropdownOpen, setIsCompanyDropdownOpen] = useState(false);
 	const [isCarDropdownOpen, setIsCarDropdownOpen] = useState(false);
 	const [isSenderDropdownOpen, setIsSenderDropdownOpen] = useState(false);
 	console.log("selectedCompany:", selectedCompany);
 
-	// Find selected details
 	const selectedCompanyDetails = senderReceiverData.find((company) => company.nick === selectedCompany);
 	const selectedCarDetails = CarsData.find((car) => car.carName === selectedCar);
 	const selectedSenderDetails = personData.find((sender) => sender.name === selectedSender);
 
 	return (
-		<div className="flex flex-col w-1/3 bg-white text-black p-4 rounded-lg shadow-lg">
+		<div className="flex flex-col w-full md:w-1/3 bg-white text-black p-4 rounded-lg shadow-lg overflow-auto">
 			<h2 className="text-lg font-semibold mb-2">Zadajte údaje</h2>
 			<div className="flex flex-col gap-4">
 				{/* Company Dropdown */}
@@ -50,7 +46,7 @@ export const InputPanel: React.FC<Props> = ({
 							setIsSenderDropdownOpen(false);
 						}}
 					>
-						Odberatel
+						Odberateľ
 					</label>
 					<input
 						type="text"
@@ -66,9 +62,9 @@ export const InputPanel: React.FC<Props> = ({
 					/>
 					{isCompanyDropdownOpen && (
 						<ul className="absolute w-full bg-white border border-gray-300 rounded-md mt-1 max-h-40 overflow-y-auto shadow-lg z-10">
-							{senderReceiverData.map((company, index) => (
+							{senderReceiverData.map((company, idx) => (
 								<li
-									key={index}
+									key={idx}
 									className="p-2 hover:bg-gray-200 cursor-pointer"
 									onClick={() => {
 										setSelectedCompany(company.nick);
@@ -85,7 +81,7 @@ export const InputPanel: React.FC<Props> = ({
 				{/* Car Dropdown */}
 				<div className="relative">
 					<label
-						className="block text-sm font-medium text-gray-700 cursor-pointer"
+						className="block text-sm font-medium text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-300"
 						onClick={() => {
 							setIsCarDropdownOpen((prev) => !prev);
 							setIsCompanyDropdownOpen(false);
@@ -108,9 +104,9 @@ export const InputPanel: React.FC<Props> = ({
 					/>
 					{isCarDropdownOpen && (
 						<ul className="absolute w-full bg-white border border-gray-300 rounded-md mt-1 max-h-40 overflow-y-auto shadow-lg z-10">
-							{CarsData.map((car, index) => (
+							{CarsData.map((car, idx) => (
 								<li
-									key={index}
+									key={idx}
 									className="p-2 hover:bg-gray-200 cursor-pointer"
 									onClick={() => {
 										setSelectedCar(car.carName);
@@ -127,14 +123,14 @@ export const InputPanel: React.FC<Props> = ({
 				{/* Sender Dropdown */}
 				<div className="relative">
 					<label
-						className="block text-sm font-medium text-gray-700 cursor-pointer"
+						className="block text-sm font-medium text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-300"
 						onClick={() => {
 							setIsSenderDropdownOpen((prev) => !prev);
 							setIsCompanyDropdownOpen(false);
 							setIsCarDropdownOpen(false);
 						}}
 					>
-						Odosielatel
+						Odosielateľ
 					</label>
 					<input
 						type="text"
@@ -150,9 +146,9 @@ export const InputPanel: React.FC<Props> = ({
 					/>
 					{isSenderDropdownOpen && (
 						<ul className="absolute w-full bg-white border border-gray-300 rounded-md mt-1 max-h-40 overflow-y-auto shadow-lg z-10">
-							{personData.map((sender, index) => (
+							{personData.map((sender, idx) => (
 								<li
-									key={index}
+									key={idx}
 									className="p-2 hover:bg-gray-200 cursor-pointer"
 									onClick={() => {
 										setSelectedSender(sender.name);
@@ -244,13 +240,8 @@ export const InputPanel: React.FC<Props> = ({
 						placeholder="DIC"
 						value={selectedCompanyDetails?.dic || ""}
 						readOnly
-						className="p-1 rounded-md bg-muted text-muted-foreground focus:ring-2 focus:ring-primary outline-none"
+						className="block text-sm font-medium text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-300"
 					/>
-				</div>
-				<div className="flex gap-3 justify-center mt-4">
-					<button className="bg-orange-500 text-white p-2 rounded">Pridať</button>
-					<button className="bg-orange-500 text-white p-2 rounded">Upraviť</button>
-					<button className="bg-orange-500 text-white p-2 rounded">Zmazať</button>
 				</div>
 			</div>
 		</div>

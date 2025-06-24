@@ -1,31 +1,45 @@
-import { FC, useState, useEffect } from "react";
+import React from "react";
 import iceCreamsData from "src/data/IceCream.json";
 import { IceCream } from "../lib/types";
-import React from "react";
 
 export default function AllIceCreamList() {
 	return (
-		<div className="flex flex-col w-1/3 bg-card p-4 rounded-lg shadow-lg">
-			<div className="grid grid-cols-2 gap-2">
-				<IceCreamListItem title="Mliecne zmrzlin" items={iceCreamsData.filter((ice) => ice.type === "M")} />
-				<IceCreamListItem title="Ovocné zmrzliny" items={iceCreamsData.filter((ice) => ice.type === "F")} />
-				<IceCreamListItem title="Špeciálne zmrzliny" items={iceCreamsData.filter((ice) => ice.type === "I")} />
-				<IceCreamListItem title="Sorbety" items={iceCreamsData.filter((ice) => ice.type === "S")} />
+		<div className="flex flex-col w-full md:w-1/3 bg-white p-4 rounded-xl shadow-lg overflow-auto">
+			<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				<IceCreamListItem title="Mliečne zmrzliny" items={iceCreamsData.filter((ice) => ice.type === "M")} heightClass="h-90" />
+				<IceCreamListItem title="Ovocné zmrzliny" items={iceCreamsData.filter((ice) => ice.type === "F")} heightClass="h-90" />
+				<IceCreamListItem title="Špeciálne zmrzliny" items={iceCreamsData.filter((ice) => ice.type === "I")} heightClass="h-80" />
+				<IceCreamListItem title="Sorbety" items={iceCreamsData.filter((ice) => ice.type === "S")} heightClass="h-80" />
 			</div>
 		</div>
 	);
 }
 
-function IceCreamListItem({ title, items }: { title: string; items: IceCream[] }) {
+function IceCreamListItem({ title, items, heightClass }: { title: string; items: IceCream[]; heightClass: string }) {
+	const half = Math.ceil(items.length / 2);
+	const firstCol = items.slice(0, half);
+	const secondCol = items.slice(half);
+
 	return (
-		<div className="border border-red-500 rounded-lg flex flex-col h-[350px] w-[230px]">
-			<h3 className="text-xs  p-1 bg-white text-black font-bold">{title}</h3>
-			<div className="bg-orange-300 flex-1 overflow-y-auto p-1">
-				{items.map((item) => (
-					<div key={item.id} className="text-black text-xs py-0.5 cursor-pointer hover:bg-gray-200 p-1 rounded font-bold">
-						{item.id} - {item.name}
+		<div className={`border border-gray-400 bg-white rounded-xl shadow-md flex flex-col ${heightClass} w-full sm:w-65`}>
+			<h3 className="text-base p-2 bg-gray-100 text-gray-900 font-semibold border-b border-gray-300 rounded-t-xl">{title}</h3>
+			<div className="flex-1 bg-orange-50 overflow-y-auto p-2">
+				<div className="grid grid-cols-2 gap-2">
+					<div className="space-y-1">
+						{firstCol.map((item) => (
+							<div key={item.id} className="text-gray-800 text-xs font-bold cursor-pointer hover:bg-orange-200 p-1 rounded">
+								{item.id} – {item.name}
+							</div>
+						))}
 					</div>
-				))}
+					<div className="space-y-1">
+						{secondCol.map((item) => (
+							<div key={item.id} className="text-gray-800 text-xs font-bold cursor-pointer hover:bg-orange-200 p-1 rounded">
+								{item.id} – {item.name}
+							</div>
+						))}
+					</div>
+				</div>
 			</div>
 		</div>
 	);

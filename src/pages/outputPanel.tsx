@@ -19,28 +19,28 @@ type Props = {
 
 export const OutputPanel: React.FC<Props> = ({ selectedSender, setSelectedSender, selectedCompany, selectedCar }) => {
 	const [inputValue, setInputValue] = useState("");
-	// Zoznam zmrzlín v objednávke
+
 	const [orderItems, setOrderItems] = useState<IceCreamType[]>([]);
-	// Chybová správa
+
 	const [error, setError] = useState<string | null>(null);
-	// Zobrazovaný text v displeji
+
 	const [displayText, setDisplayText] = useState("");
 
-	// Aktualizácia displeja pri zmene inputu
+	
 	useEffect(() => {
 		if (inputValue === "") {
 			setDisplayText("");
 			return;
 		}
 
-		// Kontrola formátu "počet*kód"
+	
 		const match = inputValue.match(/^(\d+)\*(\d*)$/);
 		if (match) {
 			const count = match[1];
 			const idPart = match[2];
 
 			if (idPart) {
-				// Ak je zadané ID, pokúsime sa nájsť zodpovedajúcu zmrzlinu
+			
 				const id = Number.parseInt(idPart, 10);
 				const iceCream = iceCreamsData.find((ice) => ice.id === id);
 
@@ -52,22 +52,21 @@ export const OutputPanel: React.FC<Props> = ({ selectedSender, setSelectedSender
 					setError(`Kód zmrzliny "${id}" neexistuje`);
 				}
 			} else {
-				// Ak je zadaný len počet a *, zobrazíme to tak ako je
+			
 				setDisplayText(inputValue);
 				setError(null);
 			}
 		} else {
-			// Ak formát nezodpovedá, zobrazíme vstup tak ako je
+		
 			setDisplayText(inputValue);
 			setError(null);
 		}
 	}, [inputValue]);
 
-	// Pridanie zmrzliny do objednávky
+
 	const handleAddItem = () => {
 		if (inputValue.trim() === "") return;
 
-		// Parsovanie vstupu vo formáte "počet*kód"
 		const match = inputValue.trim().match(/^(\d+)\*(\d+)$/);
 		if (!match) {
 			setError("Nesprávny formát. Použite: počet*kód (napr. 5*1)");
@@ -77,18 +76,17 @@ export const OutputPanel: React.FC<Props> = ({ selectedSender, setSelectedSender
 		const count = Number.parseInt(match[1], 10);
 		const id = Number.parseInt(match[2], 10);
 
-		// Kontrola, či kód existuje
 		const iceCream = iceCreamsData.find((ice) => ice.id === id);
 		if (!iceCream) {
 			setError(`Kód zmrzliny "${id}" neexistuje`);
 			return;
 		}
 
-		// Kontrola, či už táto zmrzlina je v objednávke
+
 		const existingItemIndex = orderItems.findIndex((item) => item.id === id);
 
 		if (existingItemIndex !== -1) {
-			// Ak zmrzlina už existuje v objednávke, zvýšime jej množstvo
+
 			setOrderItems((prev) => {
 				const newItems = [...prev];
 				newItems[existingItemIndex] = {
@@ -98,7 +96,7 @@ export const OutputPanel: React.FC<Props> = ({ selectedSender, setSelectedSender
 				return newItems;
 			});
 		} else {
-			// Ak zmrzlina ešte nie je v objednávke, pridáme ju ako novú položku
+
 			setOrderItems((prev) => [...prev, { ...iceCream, amount: count }]);
 		}
 
@@ -107,9 +105,6 @@ export const OutputPanel: React.FC<Props> = ({ selectedSender, setSelectedSender
 		setError(null);
 	};
 
-	// Nové funkcie pre úpravu položiek v zozname
-
-	// Zvýšenie množstva konkrétnej položky
 	const handleIncreaseAmount = (index: number) => {
 		setOrderItems((prev) => {
 			const newItems = [...prev];
@@ -121,7 +116,6 @@ export const OutputPanel: React.FC<Props> = ({ selectedSender, setSelectedSender
 		});
 	};
 
-	// Zníženie množstva konkrétnej položky
 	const handleDecreaseAmount = (index: number) => {
 		setOrderItems((prev) => {
 			const newItems = [...prev];
@@ -135,7 +129,7 @@ export const OutputPanel: React.FC<Props> = ({ selectedSender, setSelectedSender
 		});
 	};
 
-	// Odstránenie konkrétnej položky zo zoznamu
+
 	const handleRemoveSpecificItem = (index: number) => {
 		setOrderItems((prev) => {
 			const newItems = [...prev];
@@ -160,12 +154,12 @@ export const OutputPanel: React.FC<Props> = ({ selectedSender, setSelectedSender
 					displayText={displayText}
 				/>
 			</div>
-			<div className="flex gap-2 justify-center mt-4 mb-4">
+			<div className="flex flex-col md:flex-row gap-2 justify-center mt-4 mb-4 w-full">
 				<OutPutButtons
 					onAdd={handleAddItem}
 					onRemove={() => setOrderItems((prev) => prev.slice(0, -1))}
 					items={orderItems}
-					sender={selectedSender}
+					selectedSender={selectedSender}
 					selectedCompany={selectedCompany}
 					selectedCar={selectedCar}
 				/>

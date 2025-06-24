@@ -1,6 +1,7 @@
 {
 	"name": "invoice-app",
-	"author": "Jakub Godár",
+	"productName": "Invoice App",
+	"author": "jakub godar",
 	"description": "Invoice generator app for small businesses",
 	"version": "1.0.1",
 	"private": true,
@@ -66,15 +67,15 @@
 	"main": "public/electron.js",
 	"scripts": {
 		"dev": "concurrently \"npm run react:dev\" \"npm run electron:wait\"",
-		"electron:wait": "wait-on tcp:3000 && npm run electron:dev",
+		"electron:wait": "wait-on http-get://localhost:3000 && npm run electron:dev",
 		"prebuild": "rimraf build && rimraf dist",
-		"react:build": "craco build",
 		"react:dev": "cross-env BROWSER=none craco start",
+		"react:build": "craco build",
+		"electron:dev": "electron .",
 		"electron:build": "electron-builder build --win --publish never",
 		"electron:deploy": "electron-builder build --win --publish always",
-		"electron:dev": "electron .",
-		"build": "npm run react:build && npm run electron:build",
-		"deploy": "npm run react:build && npm run electron:deploy",
+		"build": "npm run prebuild && npm run react:build && npm run electron:build",
+		"deploy": "npm run prebuild && npm run react:build && npm run electron:deploy",
 		"format": "prettier --write .",
 		"update": "taze latest -w"
 	},
@@ -93,6 +94,25 @@
 			"last 1 chrome version",
 			"last 1 firefox version",
 			"last 1 safari version"
+		]
+	},
+	"build": {
+		"appId": "com.jakubgodar.invoiceapp",
+		"files": [
+			"build/**/*",
+			"public/electron.js",
+			"package.json",
+			"node_modules/**/*"
+		],
+		"extraResources": [
+			{
+				"from": "src/data/PersonalData.json",
+				"to": "data/PersonalData.json"
+			},
+			{
+				"from": "src/data/template.xlsx",
+				"to": "data/template.xlsx"
+			}
 		]
 	}
 }
