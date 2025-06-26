@@ -1,14 +1,8 @@
-export {};
-
 declare global {
-	interface Window {
-		electron: {
-			invoke: (channel: string, ...args: any[]) => Promise<any>;
-		};
-	}
-	interface IceCream {
-		id: string;
-		name: string;
-		amount: number;
-	}
+  interface Window {
+    electron: {
+      invoke(channel: string, data?: any): Promise<any>;
+    };
+  }
 }
+export {};
