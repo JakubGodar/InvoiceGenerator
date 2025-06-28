@@ -3,6 +3,7 @@ import { Car, Company, IceCream, Sender } from "@/lib/types";
 import personData from "../data/PersonalData.json";
 import senderReceiverData from "../data/Clients.json";
 import CarsData from "../data/Cars.json";
+import { Button } from "@/components/ui/button";
 
 type Props = {
   onAdd: () => void;
@@ -39,6 +40,10 @@ export const OutPutButtons: React.FC<Props> = ({
     console.log("Updating sender details:", sender);
 
     await window.electron.invoke("update-sender", sender);
+  };
+
+  const printInvoice = async () => {
+    console.log("Printing invoice");
   };
 
   const openTemplatePreview = async () => {
@@ -340,31 +345,37 @@ export const OutPutButtons: React.FC<Props> = ({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row gap-2 w-full">
-      <button
+    <div className="flex flex-col flex-wrap sm:flex-row gap-2 w-full">
+      <Button
         onClick={onAdd}
-        className="bg-orange-500 text-white p-2 rounded flex-1 min-w-[100px]"
+        className="bg-orange-500 text-white p-2 rounded flex-1 min-w-[80px] hover:cursor-pointer"
       >
         Pridať
-      </button>
-      <button
+      </Button>
+      <Button
         onClick={onRemove}
-        className="bg-orange-500 text-white p-2 rounded flex-1 min-w-[100px]"
+        className="bg-orange-500 text-white p-2 rounded flex-1 min-w-[80px] hover:cursor-pointer"
       >
         Odstrániť
-      </button>
-      <button
+      </Button>
+      <Button
         onClick={openTemplatePreview}
-        className="bg-orange-500 text-white p-2 rounded flex-1 min-w-[100px]"
+        className="bg-orange-500 text-white p-2 rounded flex-1 min-w-[80px] hover:cursor-pointer"
       >
         Náhľad
-      </button>
-      <button
+      </Button>
+      <Button
         onClick={exportAsPdf}
-        className="bg-orange-500 text-white p-2 rounded flex-1 min-w-[100px]"
+        className="bg-orange-500 text-white p-2 rounded flex-1 min-w-[80px] hover:cursor-pointer"
       >
         Tlačiť
-      </button>
+      </Button>
+      <Button
+        onClick={printInvoice}
+        className="bg-orange-500 text-white p-2 rounded flex-1 min-w-[80px] hover:cursor-pointer"
+      >
+        Tlačiť Fakturu
+      </Button>
     </div>
   );
 };
