@@ -453,5 +453,4 @@ export async function updateSender(sender: Sender) {
   }
 
   return;
-} return;
 }

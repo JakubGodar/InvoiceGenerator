@@ -18,17 +18,16 @@ export const OutPutList: React.FC<Props> = ({
 }) => {
   if (items.length === 0) {
     return (
-      <div className="bg-gray-100 rounded-lg text-gray-500 text-center min-h-[600px] p-4">
+      <div className="bg-gray-100 rounded-lg text-gray-500 text-center min-h-[600px] p-4 flex-1">
         Žiadne položky v objednávke
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-100 rounded-lg p-4">
+    <div className="bg-gray-100 rounded-lg p-4 flex-1 flex flex-col min-h-0">
       <h3 className="font-bold mb-2">Objednávka:</h3>
-
-      <div className="max-h-[430px] overflow-y-auto pr-10">
+      <div className="pr-2 flex-1 overflow-y-auto min-h-0">
         <ul className="divide-y divide-gray-200">
           {items.map((item, index) => (
             <li

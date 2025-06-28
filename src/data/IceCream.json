@@ -164,7 +164,7 @@
   {
     "id": 26,
     "name": "Coocies",
-    "type": "I",
+    "type": "S",
     "amount": 0
   },
   {
@@ -182,7 +182,7 @@
   {
     "id": 71,
     "name": "Pavlova Torta",
-    "type": "I",
+    "type": "S",
     "amount": 0
   },
   {
@@ -422,6 +422,24 @@
   {
     "id": 67,
     "name": "Uhorka Sorbet",
+    "type": "S",
+    "amount": 0
+  },
+  {
+    "id": 72,
+    "name": "Exclusive",
+    "type": "S",
+    "amount": 0
+  },
+  {
+    "id": 73,
+    "name": "Slaný karamel",
+    "type": "S",
+    "amount": 0
+  },
+  {
+    "id": 74,
+    "name": "Lotus",
     "type": "S",
     "amount": 0
   }
