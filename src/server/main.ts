@@ -1,4 +1,4 @@
-import { IceCream } from "@/lib/types";
+import { Car, Company, IceCream, Sender } from "@/lib/types";
 import { dialog, shell } from "electron";
 import path from "path";
 import os from "os";
@@ -7,68 +7,318 @@ import ExcelJS from "exceljs";
 import isDev from "electron-is-dev";
 import { spawn } from "child_process";
 
-export async function doServerLogic(params: any): Promise<string> {
-  const result = "bruh from server";
-  return result;
+function processSummaryRow(
+  sheet: ExcelJS.Worksheet,
+  startRow: number,
+  items: IceCream[],
+  sumTotalPriceWithDPH: number,
+  sumTotalPriceWithoutDPH: number,
+  sumDPHFromTotalPrice: number,
+  isDPHPayer: boolean
+) {
+  const totalKs = items.reduce((sum, item) => sum + item.amount, 0);
+  const numberOfItems = items.length;
+  const summaryRowLineBegin = sheet.getRow(startRow + numberOfItems);
+  const summaryRow = sheet.getRow(startRow + numberOfItems + 1);
+  const summaryRow2 = sheet.getRow(startRow + numberOfItems + 2);
+  const summaryRowLineEnd = sheet.getRow(startRow + numberOfItems + 3);
+
+  summaryRowLineBegin.getCell(2).value =
+    "---------------------------------------------------------------------------------------------------------------------------------------------------------";
+
+  summaryRow.getCell(2).value = "Spolu";
+
+  if (isDPHPayer) {
+    summaryRow.getCell(4).value = totalKs.toFixed(2) + " ks";
+    summaryRow.getCell(8).value = sumTotalPriceWithoutDPH.toFixed(2) + " €";
+    summaryRow.getCell(9).value = sumDPHFromTotalPrice.toFixed(2) + " €";
+  } else {
+    summaryRow.getCell(8).value = totalKs.toFixed(2) + " ks";
+  }
+
+  summaryRow.getCell(10).value = sumTotalPriceWithDPH.toFixed(2) + " €";
+
+  const totalM =
+    items.reduce((sum, item) => {
+      return item.type == "M" ? sum + item.amount : sum;
+    }, 0) * 4;
+
+  const totalI =
+    items.reduce((sum, item) => {
+      return item.type == "I" ? sum + item.amount : sum;
+    }, 0) * 4;
+
+  const totalS =
+    items.reduce((sum, item) => {
+      return item.type == "S" ? sum + item.amount : sum;
+    }, 0) * 4;
+
+  const totalF =
+    items.reduce((sum, item) => {
+      return item.type == "F" ? sum + item.amount : sum;
+    }, 0) * 4;
+
+  summaryRow2.getCell(2).value = "Spolu v litroch:";
+  summaryRow2.getCell(3).value = "Mliečne:";
+  summaryRow2.getCell(4).value = totalM + "l";
+  summaryRow2.getCell(5).value = "Prekladané:";
+  summaryRow2.getCell(6).value = totalI + "l";
+  summaryRow2.getCell(7).value = "Ovocné:";
+  summaryRow2.getCell(8).value = totalF + "l";
+  summaryRow2.getCell(9).value = "Sorbety:";
+  summaryRow2.getCell(10).value = totalS + "l";
+
+  summaryRowLineEnd.getCell(2).value =
+    "---------------------------------------------------------------------------------------------------------------------------------------------------------";
+
+  summaryRow.commit();
+  summaryRow2.commit();
+
+  summaryRowLineBegin.commit();
+  summaryRowLineEnd.commit();
 }
 
-type Sender = {
-  companyName: string;
-  name: string;
-  lastname: string;
-  city: string;
-  street: string;
-  psc: string;
-  state: string;
-  ico: string;
-  dic: string;
-  icdph: string;
-  phonenumber: string;
-  email: string;
-  email2: string;
-  priceN: string | number;
-  priceS: string | number;
-};
+function processItemHeader(sheet: ExcelJS.Worksheet, isDPHPayer: boolean) {
+  sheet.getRow(18).getCell(2).value = "Názov položky";
 
-type Car = {
-  licensePlate: string;
-  carName: string;
-};
+  if (isDPHPayer) {
+    sheet.getRow(17).getCell(4).value = "Počet";
+    sheet.getRow(18).getCell(4).value = "ks";
+    sheet.getRow(17).getCell(5).value = "Cena/ks";
+    sheet.getRow(18).getCell(4).value = "bez DPH";
+    sheet.getRow(18).getCell(5).value = "s DPH";
+    sheet.getRow(17).getCell(6).value = "Cena/ks";
+    sheet.getRow(18).getCell(6).value = "s DPH";
+    sheet.getRow(18).getCell(7).value = "DPH %";
+    sheet.getRow(17).getCell(8).value = "Cena";
+    sheet.getRow(18).getCell(8).value = "bez DPH";
+    sheet.getRow(17).getCell(9).value = "DPH z";
+    sheet.getRow(18).getCell(9).value = "ceny";
+  } else {
+    sheet.getRow(17).getCell(8).value = "Počet";
+    sheet.getRow(18).getCell(8).value = "ks";
+    sheet.getRow(17).getCell(9).value = "Cena/ks";
+    sheet.getRow(18).getCell(9).value = "s DPH";
+  }
 
-type Company = {
-  name: string;
-  lastname: string;
-  shopName: string;
-  street: string;
-  city: string;
-  phonenumber: string;
-  psc: string;
-  state: string;
-  ico: string;
-  dic: string;
-};
+  sheet.getRow(17).getCell(10).value = "Cena";
+  sheet.getRow(18).getCell(10).value = "s DPH";
+}
 
-export async function generateAndOpenExcel({
+function processCompanyHeader(sheet: ExcelJS.Worksheet, company: Company) {
+  sheet.getRow(11).getCell(5).value = company.shopName;
+  sheet.getRow(12).getCell(5).value = company.name + " " + company.lastname;
+  sheet.getRow(13).getCell(5).value =
+    company.city + " , " + company.street + " , " + company.psc;
+  sheet.getRow(14).getCell(8).value = company.ico;
+  sheet.getRow(15).getCell(8).value = company.dic;
+  sheet.getRow(15).getCell(5).value = "Mobil: " + company.phonenumber;
+}
+
+function processSenderHeader(sheet: ExcelJS.Worksheet, sender: Sender) {
+  sheet.getRow(3).getCell(3).value = sender.name + " " + sender.lastname;
+  sheet.getRow(4).getCell(3).value = sender.city + "  " + sender.street;
+  sheet.getRow(5).getCell(3).value = sender.psc;
+  sheet.getRow(6).getCell(3).value = sender.state;
+  sheet.getRow(3).getCell(5).value =
+    "   Meno: " + sender.name + " " + sender.lastname;
+  sheet.getRow(4).getCell(5).value = "     IČO: " + sender.ico;
+  sheet.getRow(4).getCell(7).value = "     mobil: ";
+  sheet.getRow(4).getCell(8).value = sender.phonenumber;
+  sheet.getRow(5).getCell(5).value = "     DIC: " + sender.dic;
+  sheet.getRow(6).getCell(5).value = "   IČ DPH: " + sender.icdph;
+
+  sheet.getRow(54).getCell(5).value =
+    "   Meno: " + sender.name + " " + sender.lastname;
+  sheet.getRow(55).getCell(5).value = "     IČO: " + sender.ico;
+  sheet.getRow(55).getCell(7).value = "     mobil: ";
+  sheet.getRow(55).getCell(8).value = sender.phonenumber;
+  sheet.getRow(56).getCell(5).value = "     DIC: " + sender.dic;
+  sheet.getRow(57).getCell(5).value = "   IČ DPH: " + sender.icdph;
+  sheet.getRow(54).getCell(3).value = sender.name + " " + sender.lastname;
+  sheet.getRow(55).getCell(3).value = sender.city + "  " + sender.street;
+  sheet.getRow(56).getCell(3).value = sender.psc;
+  sheet.getRow(57).getCell(3).value = sender.state;
+}
+
+function processCarHeader(sheet: ExcelJS.Worksheet, car: Car) {
+  sheet.getRow(12).getCell(3).value = car.licensePlate;
+}
+
+function processDateHeader(sheet: ExcelJS.Worksheet) {
+  const today = new Date();
+  const formattedDate = today.toLocaleDateString("sk-SK");
+
+  sheet.getRow(14).getCell(3).value = formattedDate;
+  sheet.getRow(15).getCell(3).value = formattedDate;
+}
+
+function processItemRow(
+  sheet: ExcelJS.Worksheet,
+  item: IceCream,
+  lineIndex: number,
+  priceForUnitWithoutDPH: number,
+  priceForUnitWithDPH: number,
+  DPH: number,
+  totalPriceWithoutDPH: number,
+  DPHFromTotalPrice: number,
+  totalPrice: number,
+  isDPHPayer: boolean
+) {
+  const row = sheet.getRow(lineIndex);
+  if (isDPHPayer) {
+    row.getCell(2).value = item.name;
+    row.getCell(4).value = item.amount.toFixed(2) + " ks";
+    row.getCell(5).value = priceForUnitWithoutDPH.toFixed(2) + " €";
+    row.getCell(6).value = priceForUnitWithDPH.toFixed(2) + " €";
+    row.getCell(7).value = DPH + "%";
+    row.getCell(8).value = totalPriceWithoutDPH.toFixed(2) + " €";
+    row.getCell(9).value = DPHFromTotalPrice.toFixed(2) + " €";
+    row.getCell(10).value = totalPrice.toFixed(2) + " €";
+
+    row.commit();
+  } else {
+    row.getCell(2).value = item.name;
+    row.getCell(8).value = item.amount.toFixed(2) + " ks";
+    row.getCell(9).value = priceForUnitWithDPH.toFixed(2) + " €";
+    row.getCell(10).value = totalPrice.toFixed(2) + " €";
+    row.commit();
+  }
+}
+
+function processHeading(sheet: ExcelJS.Worksheet, sender: Sender) {
+  sheet.getRow(8).getCell(2).value =
+    "Dodací list č: " + sender.lastID + "/" + sender.yearOFLastID;
+}
+
+export async function processExcel({
   items,
   sender,
   car,
   company,
+  templatePath,
+  tempPath,
 }: {
   items: IceCream[];
   sender: Sender;
   car: Car;
   company: Company;
+  templatePath: string;
+  tempPath: string;
+}) {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(templatePath);
+
+  const sheet = workbook.getWorksheet(1);
+  const startRow = 19;
+
+  processHeading(sheet, sender);
+
+  processDateHeader(sheet);
+
+  processSenderHeader(sheet, sender);
+
+  processCompanyHeader(sheet, company);
+
+  processCarHeader(sheet, car);
+
+  processItemHeader(sheet, sender.isDPHPayer);
+
+  let sumTotalPriceWithoutDPH = 0;
+  let sumTotalPriceWithDPH = 0;
+  let sumDPHFromTotalPrice = 0;
+  const DPH = 20;
+  const DPHCoefficient = (DPH + 100) / 100;
+
+  items.forEach((item, i) => {
+    const priceForUnitWithDPH =
+      item.type == "S" || item.type == "I" ? sender.priceS : sender.priceN;
+
+    const priceForUnitWithoutDPH = priceForUnitWithDPH / DPHCoefficient;
+    const totalPrice = item.amount * priceForUnitWithDPH;
+
+    const totalPriceWithoutDPH = totalPrice / DPHCoefficient;
+    const DPHFromTotalPrice = totalPrice - totalPriceWithoutDPH;
+
+    sumTotalPriceWithoutDPH += totalPriceWithoutDPH;
+    sumDPHFromTotalPrice += DPHFromTotalPrice;
+    sumTotalPriceWithDPH += totalPrice;
+
+    processItemRow(
+      sheet,
+      item,
+      startRow + i,
+      priceForUnitWithoutDPH,
+      priceForUnitWithDPH,
+      DPH,
+      totalPriceWithoutDPH,
+      DPHFromTotalPrice,
+      totalPrice,
+      sender.isDPHPayer
+    );
+  });
+
+  processSummaryRow(
+    sheet,
+    startRow,
+    items,
+    sumTotalPriceWithDPH,
+    sumTotalPriceWithoutDPH,
+    sumDPHFromTotalPrice,
+    sender.isDPHPayer
+  );
+
+  await workbook.xlsx.writeFile(tempPath);
+}
+
+async function getSenderById(senderId: number): Promise<Sender> {
+  const personDataPath = path.join(
+    __dirname,
+    "..",
+    "..",
+    "src",
+    "data",
+    "PersonalData.json"
+  );
+
+  if (!fs.existsSync(personDataPath)) {
+    console.error("PersonalData.json not found at path:", personDataPath);
+    return undefined;
+  }
+
+  const personData = JSON.parse(fs.readFileSync(personDataPath, "utf-8"));
+  const sender = personData.find((p: Sender) => p.id === senderId) as
+    | Sender
+    | undefined;
+
+  if (!sender) {
+    console.error(`Sender with ID ${senderId} not found in PersonalData.json`);
+    throw new Error(`Sender with ID ${senderId} not found`);
+  }
+
+  return sender;
+}
+
+export async function generateAndOpenExcel({
+  items,
+  senderId,
+  car,
+  company,
+}: {
+  items: IceCream[];
+  senderId: number;
+  car: Car;
+  company: Company;
 }): Promise<{ success: boolean; error?: string }> {
+  const sender = await getSenderById(senderId);
+
   const tempPath = path.join(os.tmpdir(), `preview-${Date.now()}.xlsx`);
 
   const templatePath = isDev
     ? path.join(__dirname, "..", "..", "src", "data", "template.xlsx")
     : path.join(process.resourcesPath, "data", "template.xlsx");
 
-  console.log("Template path:", templatePath);
   if (!fs.existsSync(templatePath)) {
-    console.error("Template file not found at:", templatePath);
-
     dialog.showMessageBox({
       type: "error",
       title: "Chyba",
@@ -79,161 +329,14 @@ export async function generateAndOpenExcel({
     return { success: false, error: "Template file not found" };
   }
 
-  console.log("Template path:", templatePath);
-
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.readFile(templatePath);
-
-  console.log("Template path:", templatePath);
-
-  const today = new Date();
-  const formattedDate = today.toLocaleDateString("sk-SK");
-
-  const sheet = workbook.getWorksheet(1);
-  const startRow = 19;
-  const row17 = sheet.getRow(17);
-  const row3 = sheet.getRow(3);
-  const row4 = sheet.getRow(4);
-  const row5 = sheet.getRow(5);
-  const row6 = sheet.getRow(6);
-  const row10 = sheet.getRow(10);
-  const row11 = sheet.getRow(11);
-  const row12 = sheet.getRow(12);
-  const row13 = sheet.getRow(13);
-  const row14 = sheet.getRow(14);
-  const row15 = sheet.getRow(15);
-  const row18 = sheet.getRow(18);
-  const row21 = sheet.getRow(21);
-  const row25 = sheet.getRow(25);
-  const row48 = sheet.getRow(48);
-  const row54 = sheet.getRow(54);
-  const row55 = sheet.getRow(55);
-  const row56 = sheet.getRow(56);
-  const row57 = sheet.getRow(57);
-
-  row14.getCell(3).value = formattedDate;
-  row15.getCell(3).value = formattedDate;
-
-  row3.getCell(3).value = sender.name + " " + sender.lastname;
-  row4.getCell(3).value = sender.city + "  " + sender.street;
-  row5.getCell(3).value = sender.psc;
-  row6.getCell(3).value = sender.state;
-
-  row11.getCell(5).value = company.shopName;
-  row12.getCell(5).value = company.name + " " + company.lastname;
-  row13.getCell(5).value =
-    company.city + " , " + company.street + " , " + company.psc;
-  row14.getCell(8).value = company.ico;
-  row15.getCell(8).value = company.dic;
-  row15.getCell(5).value = "Mobil: " + company.phonenumber;
-  row25.commit();
-
-  const numberOfItems = items.length;
-  const totalKs = items.reduce((sum, item) => sum + item.amount, 0);
-  row12.getCell(3).value = car.licensePlate;
-  row54.getCell(5).value = "   Meno: " + sender.name + sender.lastname;
-  row55.getCell(5).value = "     IČO: " + sender.ico;
-  row55.getCell(7).value = "     mobil: ";
-  row55.getCell(8).value = sender.phonenumber;
-  row56.getCell(5).value = "     DIC: " + sender.dic;
-  row57.getCell(5).value = "   IČ DPH: " + sender.icdph;
-
-  row54.getCell(3).value = sender.name + " " + sender.lastname;
-  row55.getCell(3).value = sender.city + "  " + sender.street;
-  row56.getCell(3).value = sender.psc;
-  row57.getCell(3).value = sender.state;
-
-  if (sender.name === "Peter") {
-    row3.getCell(3).value = sender.name + " " + sender.lastname;
-    row4.getCell(3).value = sender.city + "  " + sender.street;
-    row5.getCell(3).value = sender.psc;
-    row6.getCell(3).value = sender.state;
-    row3.getCell(5).value = "   Meno: " + sender.name + " " + sender.lastname;
-    row4.getCell(5).value = "     IČO: " + sender.ico;
-    row4.getCell(7).value = "     mobil: ";
-    row4.getCell(8).value = sender.phonenumber;
-    row5.getCell(5).value = "     DIC: " + sender.dic;
-    row6.getCell(5).value = "   IČ DPH: " + sender.icdph;
-
-    row54.getCell(5).value = "   Meno: " + sender.name + sender.lastname;
-    row55.getCell(5).value = "     IČO: " + sender.ico;
-    row55.getCell(7).value = "     mobil: ";
-    row55.getCell(8).value = sender.phonenumber;
-    row56.getCell(5).value = "     DIC: " + sender.dic;
-    row57.getCell(5).value = "   IČ DPH: " + sender.icdph;
-    row54.getCell(3).value = sender.name + " " + sender.lastname;
-    row55.getCell(3).value = sender.city + "  " + sender.street;
-    row56.getCell(3).value = sender.psc;
-    row57.getCell(3).value = sender.state;
-
-    items.forEach((item, i) => {
-      const row = sheet.getRow(startRow + i);
-      const summaryRow = sheet.getRow(startRow + numberOfItems + 1);
-      const summaryRow2 = sheet.getRow(startRow + numberOfItems + 2);
-
-      row.getCell(2).value = item.name; // C
-      row.getCell(8).value = item.amount + ".00" + " ks"; // H
-      row.getCell(9).value = "18,33 €"; // I
-      row.getCell(10).value = "22.00 €"; // F
-      summaryRow.getCell(2).value = "Spolu";
-      summaryRow.getCell(4).value = totalKs + ".00" + " ks";
-      summaryRow.getCell(8).value = item.amount * 18.33;
-      summaryRow.getCell(9).value = "18,33 €";
-      summaryRow.getCell(10).value = item.amount * 22.0;
-
-      summaryRow.commit();
-      summaryRow2.commit();
-      row.commit();
-    });
-    row18.getCell(2).value = "Názov položky";
-    row17.getCell(8).value = "Počet";
-    row18.getCell(8).value = "ks";
-    row17.getCell(9).value = "Cena/ks";
-    row18.getCell(9).value = "s DPH";
-    row17.getCell(10).value = "Cena";
-    row18.getCell(10).value = "s DPH";
-  } else {
-    items.forEach((item, i) => {
-      const row = sheet.getRow(startRow + i);
-      const summaryRow = sheet.getRow(startRow + numberOfItems + 1);
-      const summaryRow2 = sheet.getRow(startRow + numberOfItems + 2);
-
-      row.getCell(2).value = item.name; // C
-      row.getCell(4).value = item.amount + ".00" + " ks"; // D
-      row.getCell(5).value = "18,33 €"; // F
-      row.getCell(6).value = "22.00 €"; // G
-      row.getCell(7).value = "20 %"; // H
-      row.getCell(8).value = item.amount * 18.33; // I
-
-      summaryRow.getCell(2).value = "Spolu";
-      summaryRow.getCell(4).value = totalKs + ".00" + " ks";
-      summaryRow.getCell(8).value = item.amount * 18.33;
-      summaryRow.getCell(9).value = "18,33 €";
-      summaryRow.getCell(10).value = item.amount * 22.0;
-
-      summaryRow.commit();
-      summaryRow2.commit();
-      row.commit();
-    });
-
-    row18.getCell(2).value = "Názov položky";
-    row18.getCell(4).value = "ks";
-    row17.getCell(4).value = "Počet";
-    row17.getCell(5).value = "Cena/ks";
-    row18.getCell(4).value = "bez DPH";
-    row18.getCell(5).value = "s DPH";
-    row17.getCell(6).value = "Cena/ks";
-    row18.getCell(6).value = "s DPH";
-    row18.getCell(7).value = "DPH %";
-    row17.getCell(8).value = "Cena";
-    row18.getCell(8).value = "bez DPH";
-    row17.getCell(9).value = "DPH z";
-    row18.getCell(9).value = "ceny";
-    row17.getCell(10).value = "Cena";
-    row18.getCell(10).value = "s DPH";
-  }
-
-  await workbook.xlsx.writeFile(tempPath);
+  await processExcel({
+    items,
+    sender,
+    car,
+    company,
+    templatePath,
+    tempPath,
+  });
 
   if (isDev) {
     // v dev režime otvori excel normálne
@@ -259,208 +362,36 @@ export async function generateAndOpenExcel({
 
 export async function exportToPDF({
   items,
-  sender,
+  senderId,
   car,
   company,
 }: {
   items: IceCream[];
-  sender: Sender;
+  senderId: number;
   car: Car;
   company: Company;
 }): Promise<{ success: boolean; error?: string } | { canceled: boolean }> {
-  console.log("Exporting to PDF with items:", items);
-  console.log("isDev:", isDev);
+  const sender = await getSenderById(senderId);
   const templatePath = isDev
     ? path.join(__dirname, "..", "..", "src", "data", "template.xlsx")
     : path.join(process.resourcesPath, "data", "template.xlsx");
   const tempXlsx = path.join(os.tmpdir(), `export-${Date.now()}.xlsx`);
 
-  const workbook = new ExcelJS.Workbook();
-  await workbook.xlsx.readFile(templatePath);
-
-  const today = new Date();
-  const formattedDate = today.toLocaleDateString("sk-SK");
-
-  const sheet = workbook.getWorksheet(1);
-  const startRow = 19;
-  const row17 = sheet.getRow(17);
-  const row3 = sheet.getRow(3);
-  const row4 = sheet.getRow(4);
-  const row5 = sheet.getRow(5);
-  const row6 = sheet.getRow(6);
-  const row10 = sheet.getRow(10);
-  const row11 = sheet.getRow(11);
-  const row12 = sheet.getRow(12);
-  const row13 = sheet.getRow(13);
-  const row14 = sheet.getRow(14);
-  const row15 = sheet.getRow(15);
-  const row18 = sheet.getRow(18);
-  const row21 = sheet.getRow(21);
-  const row25 = sheet.getRow(25);
-  const row48 = sheet.getRow(48);
-  const row54 = sheet.getRow(54);
-  const row55 = sheet.getRow(55);
-  const row56 = sheet.getRow(56);
-  const row57 = sheet.getRow(57);
-
-  row14.getCell(3).value = formattedDate;
-  row15.getCell(3).value = formattedDate;
-
-  row3.getCell(3).value = sender.name + " " + sender.lastname;
-  row4.getCell(3).value = sender.city + "  " + sender.street;
-  row5.getCell(3).value = sender.psc;
-  row6.getCell(3).value = sender.state;
-
-  row11.getCell(5).value = company.shopName;
-  row12.getCell(5).value = company.name + " " + company.lastname;
-  row13.getCell(5).value =
-    company.city + " , " + company.street + " , " + company.psc;
-  row14.getCell(8).value = company.ico;
-  row15.getCell(8).value = company.dic;
-  row15.getCell(5).value = "Mobil: " + company.phonenumber;
-
-  const numberOfItems = items.length;
-  const totalKs = items.reduce((sum, item) => sum + item.amount, 0);
-  row12.getCell(3).value = car.licensePlate;
-  row54.getCell(5).value = "   Meno: " + sender.name + sender.lastname;
-  row55.getCell(5).value = "     IČO: " + sender.ico;
-  row55.getCell(7).value = "     mobil: ";
-  row55.getCell(8).value = sender.phonenumber;
-  row56.getCell(5).value = "     DIC: " + sender.dic;
-  row57.getCell(5).value = "   IČ DPH: " + sender.icdph;
-
-  row54.getCell(3).value = sender.name + " " + sender.lastname;
-  row55.getCell(3).value = sender.city + "  " + sender.street;
-  row56.getCell(3).value = sender.psc;
-  row57.getCell(3).value = sender.state;
-
-  row3.getCell(3).value = sender.name + " " + sender.lastname;
-  row4.getCell(3).value = sender.city + "  " + sender.street;
-  row5.getCell(3).value = sender.psc;
-  row6.getCell(3).value = sender.state;
-  row3.getCell(5).value = "   Meno: " + sender.name + " " + sender.lastname;
-  row4.getCell(5).value = "     IČO: " + sender.ico;
-  row4.getCell(7).value = "     mobil: ";
-  row4.getCell(8).value = sender.phonenumber;
-  row5.getCell(5).value = "     DIC: " + sender.dic;
-  row6.getCell(5).value = "   IČ DPH: " + sender.icdph;
-
-  row54.getCell(5).value = "   Meno: " + sender.name + sender.lastname;
-  row55.getCell(5).value = "     IČO: " + sender.ico;
-  row55.getCell(7).value = "     mobil: ";
-  row55.getCell(8).value = sender.phonenumber;
-  row56.getCell(5).value = "     DIC: " + sender.dic;
-  row57.getCell(5).value = "   IČ DPH: " + sender.icdph;
-  row54.getCell(3).value = sender.name + " " + sender.lastname;
-  row55.getCell(3).value = sender.city + "  " + sender.street;
-  row56.getCell(3).value = sender.psc;
-  row57.getCell(3).value = sender.state;
-
-  row25.commit();
-
-  if (sender.name === "Peter") {
-    row3.getCell(3).value = sender.name + " " + sender.lastname;
-    row4.getCell(3).value = sender.city + "  " + sender.street;
-    row5.getCell(3).value = sender.psc;
-    row6.getCell(3).value = sender.state;
-    row3.getCell(5).value = "   Meno: " + sender.name + " " + sender.lastname;
-    row4.getCell(5).value = "     IČO: " + sender.ico;
-    row4.getCell(7).value = "     mobil: ";
-    row4.getCell(8).value = sender.phonenumber;
-    row5.getCell(5).value = "     DIC: " + sender.dic;
-    row6.getCell(5).value = "   IČ DPH: " + sender.icdph;
-
-    row54.getCell(5).value = "   Meno: " + sender.name + sender.lastname;
-    row55.getCell(5).value = "     IČO: " + sender.ico;
-    row55.getCell(7).value = "     mobil: ";
-    row55.getCell(8).value = sender.phonenumber;
-    row56.getCell(5).value = "     DIC: " + sender.dic;
-    row57.getCell(5).value = "   IČ DPH: " + sender.icdph;
-    row54.getCell(3).value = sender.name + " " + sender.lastname;
-    row55.getCell(3).value = sender.city + "  " + sender.street;
-    row56.getCell(3).value = sender.psc;
-    row57.getCell(3).value = sender.state;
-
-    items.forEach((item, i) => {
-      const row = sheet.getRow(startRow + i);
-      const summaryRow = sheet.getRow(startRow + numberOfItems + 1);
-      const summaryRow2 = sheet.getRow(startRow + numberOfItems + 2);
-
-      row.getCell(2).value = item.name; // C
-      row.getCell(8).value = item.amount + ".00" + " ks"; // H
-      row.getCell(9).value = "18,33 €"; // I
-      row.getCell(10).value = "22.00 €"; // F
-      summaryRow.getCell(2).value = "Spolu";
-      summaryRow.getCell(4).value = totalKs + ".00" + " ks";
-      summaryRow2.getCell(2).value = "Spolu v litroch: ";
-      summaryRow2.getCell(5).value = "Mliečne: ";
-      summaryRow2.getCell(7).value = "Ovocné: ";
-      summaryRow2.getCell(9).value = "Sorberty: ";
-      summaryRow.getCell(8).value = item.amount * 18.33;
-      summaryRow.getCell(9).value = "18,33 €";
-
-      summaryRow.commit();
-      summaryRow2.commit();
-      row.commit();
-    });
-    row18.getCell(2).value = "Názov položky";
-    row17.getCell(8).value = "Počet";
-    row18.getCell(8).value = "ks";
-    row17.getCell(9).value = "Cena/ks";
-    row18.getCell(9).value = "s DPH";
-    row17.getCell(10).value = "Cena";
-    row18.getCell(10).value = "s DPH";
-  } else {
-    items.forEach((item, i) => {
-      const row = sheet.getRow(startRow + i);
-      const summaryRow = sheet.getRow(startRow + numberOfItems + 1);
-      const summaryRow2 = sheet.getRow(startRow + numberOfItems + 2);
-
-      row.getCell(2).value = item.name; // C
-      row.getCell(4).value = item.amount + ".00" + " ks"; // D
-      row.getCell(5).value = "18,33 €"; // F
-      row.getCell(6).value = "22.00 €"; // G
-      row.getCell(7).value = "20 %"; // H
-      row.getCell(8).value = item.amount * 18.33; // I
-
-      summaryRow.getCell(2).value = "Spolu";
-      summaryRow.getCell(4).value = totalKs + ".00" + " ks";
-      summaryRow2.getCell(2).value = "Spolu v litroch: ";
-      summaryRow2.getCell(5).value = "Mliečne: ";
-      summaryRow2.getCell(7).value = "Ovocné: ";
-      summaryRow2.getCell(9).value = "Sorberty: ";
-      summaryRow.getCell(8).value = item.amount * 18.33;
-      summaryRow.getCell(9).value = "18,33 €";
-
-      summaryRow.commit();
-      summaryRow2.commit();
-      row.commit();
-    });
-
-    row18.getCell(2).value = "Názov položky";
-    row18.getCell(4).value = "ks";
-    row17.getCell(4).value = "Počet";
-    row17.getCell(5).value = "Cena/ks";
-    row18.getCell(4).value = "bez DPH";
-    row18.getCell(5).value = "s DPH";
-    row17.getCell(6).value = "Cena/ks";
-    row18.getCell(6).value = "s DPH";
-    row18.getCell(7).value = "DPH %";
-    row17.getCell(8).value = "Cena";
-    row18.getCell(8).value = "bez DPH";
-    row17.getCell(9).value = "DPH z";
-    row18.getCell(9).value = "ceny";
-    row17.getCell(10).value = "Cena";
-    row18.getCell(10).value = "s DPH";
-  }
-
-  await workbook.xlsx.writeFile(tempXlsx);
+  await processExcel({
+    items,
+    sender,
+    car,
+    company,
+    templatePath,
+    tempPath: tempXlsx,
+  });
 
   const { canceled, filePath } = await dialog.showSaveDialog({
     title: "Uložiť objednávku ako PDF",
     defaultPath: "objednávka.pdf",
     filters: [{ name: "PDF súbory", extensions: ["pdf"] }],
   });
+
   if (canceled || !filePath) {
     return { canceled: true };
   }
@@ -483,4 +414,44 @@ export async function exportToPDF({
   );
 
   return { success: true };
+}
+
+export async function updateSender(sender: Sender) {
+  console.log("Updating sender details:", sender);
+
+  //Cehck if sender yearOFLastID is current year, if not set it to current year and set lastID to 1
+  const currentYear = new Date().getFullYear();
+  if (sender.yearOFLastID !== currentYear) {
+    sender.yearOFLastID = currentYear;
+    sender.lastID = 1; // Reset lastID to 1 for new year
+  }
+
+  //Update import personData from "../data/PersonalData.json"; with new sender data
+  const personDataPath = path.join(
+    __dirname,
+    "..",
+    "..",
+    "src",
+    "data",
+    "PersonalData.json"
+  );
+  if (!fs.existsSync(personDataPath)) {
+    console.error("PersonalData.json not found at path:", personDataPath);
+  } else {
+    const personData = JSON.parse(fs.readFileSync(personDataPath, "utf-8"));
+    const index = personData.findIndex(
+      (p: Sender) => p.name === sender.name && p.lastname === sender.lastname
+    );
+
+    if (index !== -1) {
+      personData[index] = { ...personData[index], ...sender };
+      fs.writeFileSync(personDataPath, JSON.stringify(personData, null, 2));
+      console.log("Sender details updated successfully.");
+    } else {
+      console.error("Sender not found in PersonalData.json");
+    }
+  }
+
+  return;
+} return;
 }
